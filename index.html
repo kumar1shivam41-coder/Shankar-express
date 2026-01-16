@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shankar Express | Premium Store</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+
+        :root { --primary: #121212; --accent: #25D366; --bg: #f4f7f6; --white: #ffffff; --shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); padding-bottom: 120px; }
+
+        
+
+        header { background: var(--white); padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
+
+        .search-area { position: sticky; top: 0; background: var(--bg); padding: 15px; z-index: 100; text-align: center; }
+
+        #search-input { width: 90%; max-width: 600px; padding: 12px 20px; border-radius: 25px; border: 1px solid #ccc; outline: none; box-shadow: var(--shadow); }
+
+        .quick-contact { display: flex; justify-content: center; gap: 15px; padding: 10px; }
+
+        .btn-call { background: #007bff; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; }
+
+        .btn-query { background: #25D366; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; border: none; cursor: pointer; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); position: relative; }
+
+        .stock-badge { position: absolute; top: 10px; right: 10px; padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; }
+
+        .in-stock { background: #d4edda; color: #155724; }
+
+        .out-stock { background: #f8d7da; color: #721c24; }
+
+        .img-box { height: 160px; padding: 10px; display: flex; align-items: center; justify-content: center; }
+
+        .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .info { padding: 10px; text-align: center; }
+
+        .add-btn { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+
+        
+
+        .cart-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: var(--primary); color: white; padding: 15px 25px; border-radius: 50px; display: none; justify-content: space-between; align-items: center; z-index: 1000; }
+
+        .checkout-trigger { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+
+        .modal { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; }
+
+        .field { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+
+        
+
+        .price-row { display: flex; justify-content: space-between; margin: 5px 0; }
+
+        .total-bold { font-weight: bold; font-size: 1.2em; border-top: 1px solid #ddd; padding-top: 5px; margin-top: 5px; }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>SHANKAR EXPRESS</h1>
+
+    <div class="quick-contact">
+
+        <a href="tel:9625899506" class="btn-call"><i class="fas fa-phone"></i> Call Me</a>
+
+        <button onclick="askQuery()" class="btn-query"><i class="fab fa-whatsapp"></i> Query</button>
+
+    </div>
+
+</header>
+
+<div class="search-area">
+
+    <input type="text" id="search-input" placeholder="Search products..." onkeyup="render()">
+
+</div>
+
+<div class="container"><div class="grid" id="product-grid"></div></div>
+
+<div class="cart-bar" id="cart-bar">
+
+    <div>Subtotal: <b>₹<span id="c-total">0</span></b></div>
+
+    <button class="checkout-trigger" onclick="openModal()">Checkout</button>
+
+</div>
+
+<div class="overlay" id="modal">
+
+    <div class="modal">
+
+        <div id="step1">
+
+            <h3>Delivery Details</h3>
+
+            <input type="text" id="c-name" class="field" placeholder="Full Name">
+
+            <input type="tel" id="c-phone" class="field" placeholder="Mobile Number">
+
+            <textarea id="c-addr" class="field" rows="3" placeholder="Enter Address (Type 'Vasundhara' for ₹50 fee)" oninput="calcTotal()"></textarea>
+
+            
+
+            <div id="price-summary" style="background:#f9f9f9; padding:15px; border-radius:10px; margin-top:10px;">
+
+                <div class="price-row"><span>Subtotal:</span><span id="sum-sub">₹0</span></div>
+
+                <div class="price-row"><span>Delivery Fee:</span><span id="sum-fee">₹0</span></div>
+
+                <div class="price-row total-bold"><span>Grand Total:</span><span id="sum-total">₹0</span></div>
+
+            </div>
+
+            <button class="add-btn" style="background:var(--accent); margin-top:15px; border-radius:10px;" onclick="goStep2()">Pay Now</button>
+
+            <button class="add-btn" style="background:#ccc; color:#333; margin-top:8px; border-radius:10px;" onclick="closeModal()">Back</button>
+
+        </div>
+
+        <div id="step2" style="display:none; text-align:center;">
+
+            <h3>Scan & Pay</h3>
+
+            <div id="qrcode" style="display:flex; justify-content:center; margin-bottom:15px;"></div>
+
+            <p id="pay-instruction"></p>
+
+            <button class="add-btn" style="background:var(--accent); border-radius:10px;" onclick="sendOrder()">I Have Paid - Send Order</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const UPI_ID = "paytm.s1jucya@pty";
+
+    const WHATSAPP = "9625899506";
+
+    const MIN_ORDER = 500;
+
+    let cart = {};
+
+    const products = [
+
+        { id:0, name: "Esse Light", price: 150, instock: true, img: "https://tse4.mm.bing.net/th/id/OIP.OWNVArJ77COOMGyPmG5OiwAAAA?pid=Api&P=0&h=180" },
+
+        { id:1, name: "Gold Flake", price: 100, instock: true, img: "https://tse1.mm.bing.net/th/id/OIP.mZDcM7uczyTDXcAG3CFx3gAAAA?pid=Api&P=0&h=180" },
+
+        { id:2, name: "Thums Up 1L", price: 50, instock: true, img: "https://tse1.mm.bing.net/th/id/OIP.mm16ntWa3NRsYQ_hDBOdSwHaHa?pid=Api&rs=1&c=1&qlt=95&w=121&h=121" },
+
+        { id:3, name: "RedBull", price: 125, instock: true, img: "https://tse4.mm.bing.net/th/id/OIP.yJQ_codj4f8RNakhJbJFsgHaHa?pid=Api&P=0&h=180" }
+
+    ];
+
+    function render() {
+
+        const g = document.getElementById('product-grid');
+
+        const s = document.getElementById('search-input').value.toLowerCase();
+
+        g.innerHTML = '';
+
+        products.forEach(p => {
+
+            if(p.name.toLowerCase().includes(s)) {
+
+                const q = cart[p.id] || 0;
+
+                g.innerHTML += `<div class="card">
+
+                    <span class="stock-badge ${p.instock?'in-stock':'out-stock'}">${p.instock?'In Stock':'Out Stock'}</span>
+
+                    <div class="img-box"><img src="${p.img}"></div>
+
+                    <div class="info"><h3>${p.name}</h3><b>₹${p.price}</b></div>
+
+                    ${q === 0 ? `<button class="add-btn" onclick="upd(${p.id},1)">ADD</button>` :
+
+                    `<div style="display:flex; justify-content:space-between; padding:5px; background:#eee;">
+
+                        <button onclick="upd(${p.id},-1)" style="width:30%">-</button><span>${q}</span><button onclick="upd(${p.id},1)" style="width:30%">+</button>
+
+                    </div>`}
+
+                </div>`;
+
+            }
+
+        });
+
+        updateBar();
+
+    }
+
+    function upd(id, d) { cart[id] = (cart[id] || 0) + d; if(cart[id] <= 0) delete cart[id]; render(); }
+
+    function updateBar() {
+
+        let t = 0; for(let id in cart) t += products[id].price * cart[id];
+
+        document.getElementById('cart-bar').style.display = t > 0 ? 'flex' : 'none';
+
+        document.getElementById('c-total').innerText = t;
+
+    }
+
+    function openModal() {
+
+        let sub = parseInt(document.getElementById('c-total').innerText);
+
+        if(sub < MIN_ORDER) return alert(`Minimum order is ₹${MIN_ORDER}`);
+
+        document.getElementById('modal').style.display = 'flex';
+
+        document.getElementById('c-addr').value = ""; // Clear address on open
+
+        calcTotal();
+
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+    function calcTotal() {
+
+        let sub = 0; for(let id in cart) sub += products[id].price * cart[id];
+
+        let addr = document.getElementById('c-addr').value.trim();
+
+        let fee = 0;
+
+        // Only add fee if address is not empty
+
+        if(addr !== "") {
+
+            fee = addr.toLowerCase().includes('vasundhara') ? 50 : 100;
+
+        }
+
+        document.getElementById('sum-sub').innerText = "₹" + sub;
+
+        document.getElementById('sum-fee').innerText = "₹" + fee;
+
+        document.getElementById('sum-total').innerText = "₹" + (sub + fee);
+
+        return sub + fee;
+
+    }
+
+    function goStep2() {
+
+        const name = document.getElementById('c-name').value;
+
+        const phone = document.getElementById('c-phone').value;
+
+        const addr = document.getElementById('c-addr').value;
+
+        if(!name || !phone || !addr) return alert("Please fill all details!");
+
+        document.getElementById('step1').style.display = 'none';
+
+        document.getElementById('step2').style.display = 'block';
+
+        
+
+        let grand = calcTotal();
+
+        document.getElementById('pay-instruction').innerText = "Pay ₹" + grand + " via any UPI App";
+
+        
+
+        document.getElementById('qrcode').innerHTML = "";
+
+        new QRCode(document.getElementById("qrcode"), { 
+
+            text: `upi://pay?pa=${UPI_ID}&pn=ShankarStore&am=${grand}&cu=INR`, 
+
+            width: 180, height: 180 
+
+        });
+
+    }
+
+    function sendOrder() {
+
+        let sub = 0; for(let id in cart) sub += products[id].price * cart[id];
+
+        let addr = document.getElementById('c-addr').value;
+
+        let fee = addr.toLowerCase().includes('vasundhara') ? 50 : 100;
+
+        
+
+        let msg = `*NEW ORDER RECEIVED*%0A*Name:* ${document.getElementById('c-name').value}%0A*Phone:* ${document.getElementById('c-phone').value}%0A*Address:* ${addr}%0A%0A*Items:*%0A`;
+
+        for(let id in cart) msg += `- ${products[id].name} x ${cart[id]}%0A`;
+
+        msg += `%0A*Subtotal:* ₹${sub}%0A*Delivery Fee:* ₹${fee}%0A*GRAND TOTAL:* ₹${sub+fee}`;
+
+        window.open(`https://wa.me/${WHATSAPP}?text=${msg}`);
+
+    }
+
+    function askQuery() {
+
+        const q = prompt("Type your message for Shankar Express:");
+
+        if(q) window.open(`https://wa.me/${WHATSAPP}?text=*QUERY:* ${q}`);
+
+    }
+
+    render();
+
+</script>
+
+</body>
+
+</html>
